@@ -351,6 +351,7 @@ void scenes::stream::on_focused()
 
 		plots_toggle_1 = get_action("plots_toggle_1").first;
 		plots_toggle_2 = get_action("plots_toggle_2").first;
+        super_sampling_toggle = get_action("super_sampling_toggle").first;
 	}
 
 	assert(video_stream_description);
@@ -925,7 +926,7 @@ void scenes::stream::render(const XrFrameState & frame_state)
 	};
 
 	XrCompositionLayerSettingsFB settings;
-	const configuration::openxr_post_processing_settings openxr_post_processing = application::get_config().openxr_post_processing;
+	configuration::openxr_post_processing_settings openxr_post_processing = application::get_config().openxr_post_processing;
 	if ((openxr_post_processing.sharpening | openxr_post_processing.super_sampling) > 0)
 	{
 		settings = {
@@ -1011,6 +1012,27 @@ void scenes::stream::render(const XrFrameState & frame_state)
 		if (state_1.currentState and state_2.currentState and (state_1.changedSinceLastSync or state_2.changedSinceLastSync))
 			plots_visible = not plots_visible;
 	}
+
+    if(plots_visible and super_sampling_toggle)
+    {
+		XrActionStateGetInfo get_info{
+		        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+		        .action = super_sampling_toggle,
+		};
+
+		XrActionStateBoolean state_1{XR_TYPE_ACTION_STATE_BOOLEAN};
+		CHECK_XR(xrGetActionStateBoolean(session, &get_info, &state_1));
+        if (state_1.currentState and state_1.changedSinceLastSync)
+        {
+            const XrCompositionLayerSettingsFlagsFB super_sampling_options[]{
+                    0,
+                    XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SUPER_SAMPLING_BIT_FB,
+                    XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SUPER_SAMPLING_BIT_FB};
+
+            openxr_post_processing.sharpening = super_sampling_options[++super_sampling_counter % 3];
+
+        }
+    }
 
 	query_pool_filled = true;
 }
@@ -1197,6 +1219,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	        .actions = {
 	                {"plots_toggle_1", XR_ACTION_TYPE_BOOLEAN_INPUT},
 	                {"plots_toggle_2", XR_ACTION_TYPE_BOOLEAN_INPUT},
+                    {"super_sampling_toggle", XR_ACTION_TYPE_BOOLEAN_INPUT},
 	        },
 	        .bindings = {
 	                suggested_binding{
@@ -1204,6 +1227,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                        {
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
+                                    {"super_sampling_toggle", "/user/hand/left/input/x/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1211,6 +1235,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                        {
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
+                                    {"super_sampling_toggle", "/user/hand/left/input/x/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1218,6 +1243,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                        {
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
+                                    {"super_sampling_toggle", "/user/hand/left/input/x/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1225,6 +1251,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                        {
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
+                                    {"super_sampling_toggle", "/user/hand/left/input/x/click"},
 	                        },
 	                },
 	                suggested_binding{

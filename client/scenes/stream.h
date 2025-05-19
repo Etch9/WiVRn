@@ -130,6 +130,8 @@ private:
 	bool plots_visible = true;
 	XrAction plots_toggle_1 = XR_NULL_HANDLE;
 	XrAction plots_toggle_2 = XR_NULL_HANDLE;
+    XrAction super_sampling_toggle = XR_NULL_HANDLE;
+    uint64_t super_sampling_counter =0;
 
 	// Keep a reference to the resources needed to blit the images until vkWaitForFences
 	std::vector<std::shared_ptr<wivrn::shard_accumulator::blit_handle>> current_blit_handles;
