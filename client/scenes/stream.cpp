@@ -926,7 +926,6 @@ void scenes::stream::render(const XrFrameState & frame_state)
 	};
 
 	XrCompositionLayerSettingsFB settings;
-	configuration::openxr_post_processing_settings openxr_post_processing = application::get_config().openxr_post_processing;
 	if ((openxr_post_processing.sharpening | openxr_post_processing.super_sampling) > 0)
 	{
 		settings = {
@@ -936,19 +935,20 @@ void scenes::stream::render(const XrFrameState & frame_state)
 		layer.next = &settings;
 	}
 
-	std::vector<XrCompositionLayerQuad> imgui_layers;
+	std::vector<XrCompositionLayerQuad> debug_menu_layers;
 	if (imgui_ctx)
 	{
 		accumulate_metrics(frame_state.predictedDisplayTime, current_blit_handles, timestamps);
-		if (plots_visible)
-			imgui_layers = plot_performance_metrics(frame_state.predictedDisplayTime);
+		if (plots_visible){
+			debug_menu_layers = show_debug_menu(frame_state.predictedDisplayTime);
+        }
 	}
 
 	layers_base.push_back(reinterpret_cast<XrCompositionLayerBaseHeader *>(&layer));
 
 	if (imgui_ctx and plots_visible)
 	{
-		for (auto & layer: imgui_layers)
+		for (auto & layer: debug_menu_layers)
 			layers_base.push_back(reinterpret_cast<XrCompositionLayerBaseHeader *>(&layer));
 	}
 
@@ -1029,7 +1029,7 @@ void scenes::stream::render(const XrFrameState & frame_state)
                     XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SUPER_SAMPLING_BIT_FB,
                     XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SUPER_SAMPLING_BIT_FB};
 
-            openxr_post_processing.sharpening = super_sampling_options[++super_sampling_counter % 3];
+            openxr_post_processing.super_sampling = super_sampling_options[++super_sampling_counter % 3];
 
         }
     }

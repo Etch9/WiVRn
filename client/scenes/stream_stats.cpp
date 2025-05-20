@@ -143,16 +143,15 @@ void scenes::stream::accumulate_metrics(XrTime predicted_display_time, const std
 	metrics_offset = (metrics_offset + 1) % global_metrics.size();
 }
 
-std::vector<XrCompositionLayerQuad> scenes::stream::plot_performance_metrics(XrTime predicted_display_time)
+void scenes::stream::plot_performance_metrics()
 {
-	imgui_ctx->new_frame(predicted_display_time);
 	const ImGuiStyle & style = ImGui::GetStyle();
 
 	ImGui::SetNextWindowPos({0, 0});
 	ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
 	ImGui::Begin("Performance metrics", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-	ImVec2 window_size = ImGui::GetWindowSize() - ImVec2(2, 2) * style.WindowPadding;
+	ImVec2 window_size = ImGui::GetWindowSize() - ImVec2(12, 12) * style.WindowPadding;
 
 	static const std::array plots = {
 	        // clang-format off
@@ -330,9 +329,32 @@ std::vector<XrCompositionLayerQuad> scenes::stream::plot_performance_metrics(XrT
 		ImGui::Text("%s", fmt::format(_F("Estimated motion to photons latency: {}ms"), std::chrono::duration_cast<std::chrono::milliseconds>(tracking_control.max_offset).count()).c_str());
 	}
 	ImGui::End();
+}
 
-	std::vector<XrCompositionLayerQuad> layers;
+void scenes::stream::show_post_processing_settings()
+{
+    const ImGuiStyle & style = ImGui::GetStyle();
+
+	float window_y = (ImGui::GetMainViewport()->Size - ImVec2(10, 10) * style.WindowPadding).y;
+    ImGui::SetNextWindowPos({0, window_y});
+    ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
+    ImGui::Begin("Post Processing settings", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+    ImGui::Text("%s", fmt::format(_F("Super Sampling: {}"), std::to_string(openxr_post_processing.super_sampling)).c_str());
+    ImGui::Text("%s", fmt::format(_F("Sharpening: {}"), std::to_string(openxr_post_processing.sharpening)).c_str());
+    ImGui::End();
+}
+std::vector<XrCompositionLayerQuad> scenes::stream::show_debug_menu(XrTime predicted_display_time)
+{
+    imgui_ctx->new_frame(predicted_display_time);
+
+    plot_performance_metrics();
+
+    show_post_processing_settings();
+
+    std::vector<XrCompositionLayerQuad> layers;
 	for (auto & layer: imgui_ctx->end_frame())
+
 		layers.push_back(layer.second);
 
 	return layers;

@@ -32,7 +32,8 @@
 #include <shared_mutex>
 #include <thread>
 #include <vulkan/vulkan_core.h>
-
+#include "configuration.h"
+#include "application.h"
 namespace scenes
 {
 class stream : public scene_impl<stream>, public std::enable_shared_from_this<stream>
@@ -133,6 +134,7 @@ private:
     XrAction super_sampling_toggle = XR_NULL_HANDLE;
     uint64_t super_sampling_counter =0;
 
+	configuration::openxr_post_processing_settings openxr_post_processing = application::get_config().openxr_post_processing;
 	// Keep a reference to the resources needed to blit the images until vkWaitForFences
 	std::vector<std::shared_ptr<wivrn::shard_accumulator::blit_handle>> current_blit_handles;
 
@@ -248,6 +250,8 @@ private:
 	int metrics_offset = 0;
 
 	void accumulate_metrics(XrTime predicted_display_time, const std::vector<std::shared_ptr<wivrn::shard_accumulator::blit_handle>> & blit_handles, const gpu_timestamps & timestamps);
-	std::vector<XrCompositionLayerQuad> plot_performance_metrics(XrTime predicted_display_time);
+void plot_performance_metrics();
+void show_post_processing_settings();
+std::vector<XrCompositionLayerQuad> show_debug_menu(XrTime predicted_display_time);
 };
 } // namespace scenes
