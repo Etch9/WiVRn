@@ -352,6 +352,7 @@ void scenes::stream::on_focused()
 		plots_toggle_1 = get_action("plots_toggle_1").first;
 		plots_toggle_2 = get_action("plots_toggle_2").first;
         super_sampling_toggle = get_action("super_sampling_toggle").first;
+        sharpening_toggle = get_action("sharpening_toggle").first;
 	}
 
 	assert(video_stream_description);
@@ -1033,6 +1034,26 @@ void scenes::stream::render(const XrFrameState & frame_state)
 
         }
     }
+    if(plots_visible and sharpening_toggle)
+    {
+		XrActionStateGetInfo get_info{
+		        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+		        .action = sharpening_toggle,
+		};
+
+		XrActionStateBoolean state_1{XR_TYPE_ACTION_STATE_BOOLEAN};
+		CHECK_XR(xrGetActionStateBoolean(session, &get_info, &state_1));
+        if (state_1.currentState and state_1.changedSinceLastSync)
+        {
+            const XrCompositionLayerSettingsFlagsFB sharpening_options[]{
+                0,
+                XR_COMPOSITION_LAYER_SETTINGS_NORMAL_SHARPENING_BIT_FB,
+                XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB};
+
+            openxr_post_processing.sharpening = sharpening_options[++sharpening_counter % 3];
+
+        }
+    }
 
 	query_pool_filled = true;
 }
@@ -1220,6 +1241,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                {"plots_toggle_1", XR_ACTION_TYPE_BOOLEAN_INPUT},
 	                {"plots_toggle_2", XR_ACTION_TYPE_BOOLEAN_INPUT},
                     {"super_sampling_toggle", XR_ACTION_TYPE_BOOLEAN_INPUT},
+                    {"sharpening_toggle",XR_ACTION_TYPE_BOOLEAN_INPUT},
 	        },
 	        .bindings = {
 	                suggested_binding{
@@ -1228,6 +1250,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
                                     {"super_sampling_toggle", "/user/hand/left/input/x/click"},
+                                    {"sharpening_toggle", "/user/hand/right/input/a/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1236,6 +1259,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
                                     {"super_sampling_toggle", "/user/hand/left/input/x/click"},
+                                    {"sharpening_toggle", "/user/hand/right/input/a/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1244,6 +1268,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
                                     {"super_sampling_toggle", "/user/hand/left/input/x/click"},
+                                    {"sharpening_toggle", "/user/right/left/input/a/click"},
 	                        },
 	                },
 	                suggested_binding{
@@ -1252,6 +1277,7 @@ scene::meta & scenes::stream::get_meta_scene()
 	                                {"plots_toggle_1", "/user/hand/left/input/thumbstick/click"},
 	                                {"plots_toggle_2", "/user/hand/right/input/thumbstick/click"},
                                     {"super_sampling_toggle", "/user/hand/left/input/x/click"},
+                                    {"sharpening_toggle", "/user/hand/right/input/a/click"},
 	                        },
 	                },
 	                suggested_binding{
